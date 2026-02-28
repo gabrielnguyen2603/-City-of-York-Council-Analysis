@@ -39,6 +39,8 @@ All dashboard metrics and charts are derived from this CSV by aggregating **Net_
 
 The dashboard provides a financial analysis view of the council’s spending: total spend, trends, category and vendor breakdowns, and a simple savings model. Users can filter by **Year** and **Month** (from **Payment_Date**) so all visuals and KPIs update for the selected period.
 
+<img width="1850" height="515" alt="image" src="https://github.com/user-attachments/assets/1a96b301-9f23-4f3d-8ad2-2d1a160e6f8c" />
+
 
 
 ---
