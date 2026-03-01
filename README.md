@@ -1,145 +1,150 @@
-# City of York Council Analysis Dashboard
+# City of York Council — Spend Analysis Dashboard
 
-This document describes the **City of York Council Analysis** dashboard and the underlying data it is built from.
-
----
-
-## Data source
-
-The dashboard is based on the payment data file:
-
-- **File:** `data/clean/City of York Council.csv`
-- **Content:** Individual payment transactions made by City of York Council, with one row per transaction.
-
-### CSV columns
-
-
-| Column                  | Description                                                                                                                |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **Organisation_Name**   | Paying body (e.g. City of York Council)                                                                                    |
-| **Directorate**         | High-level organisational area (e.g. Economy and Place, Health Housing & Adult So Care, Customer & Corporate Services)     |
-| **Department**          | Department within the directorate                                                                                          |
-| **Service_Plan**        | Service or plan the spend relates to (e.g. Transport, Commercial property, Operations)                                     |
-| **Creditor_Name**       | Supplier or payee name                                                                                                     |
-| **Payment_Date**        | Date of the payment (used for year/month filters and trend charts)                                                         |
-| **Card_Transaction**    | Indicates if the payment was by card (often blank)                                                                         |
-| **Transaction_No**      | Unique transaction identifier (e.g. 202021CR00000001)                                                                      |
-| **Net_Amount**          | Payment amount in pounds (£) — **main measure used for all spend calculations**                                            |
-| **Irrecoverable_VAT**   | VAT that cannot be recovered (often blank)                                                                                 |
-| **Subjective_Group**    | **Spend category** (e.g. Supplies And Services, Premises, Capital Purchases) — used for category breakdowns and heat table |
-| **Subjective_Subgroup** | Finer category (e.g. Repairs and Maintenance, Grants and Subscriptions)                                                    |
-| **Subjective_Detail**   | Most detailed category (e.g. Repairs and Maintenance (Reactive), Subscriptions)                                            |
-
-
-All dashboard metrics and charts are derived from this CSV by aggregating **Net_Amount** and grouping by **Payment_Date**, **Creditor_Name**, and **Subjective_Group** as needed.
+**Executive financial analytics for spend visibility, trend detection, and savings opportunities.**
 
 ---
 
-## Dashboard overview
+## 1. Executive Summary
 
-The dashboard provides a financial analysis view of the council’s spending: total spend, trends, category and vendor breakdowns, and a simple savings model. Users can filter by **Year** and **Month** (from **Payment_Date**) so all visuals and KPIs update for the selected period.
+This dashboard provides **senior-level data analysis** of City of York Council payment data. It supports:
 
-<img width="1850" height="515" alt="image" src="https://github.com/user-attachments/assets/1a96b301-9f23-4f3d-8ad2-2d1a160e6f8c" />
+- **Spend visibility** — Total expenditure, category mix, and vendor concentration at a glance.
+- **Trend and anomaly detection** — Time-series view to spot unusual spikes or drops for investigation.
+- **Actionable savings** — A quantified saving model with low/base/high scenarios for strategic planning.
+- **Accuracy and drill-down** — All metrics and visuals are driven by the same underlying data and filters, so figures are consistent and auditable.
 
-
-
----
-
-## 1. Key performance indicators (KPIs) — top row
-
-Six summary metrics sit at the top. They are calculated from the filtered data (according to the selected year/month).
-
-
-| KPI                                    | What it shows                                                              | How it’s derived from the data                                                                                                          |
-| -------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **Total Spend (FY)**                   | Total expenditure in the selected financial year / period                  | Sum of **Net_Amount** for all transactions in the filter (e.g. £1,307,153,399.64)                                                       |
-| **Top category (by spend)**            | The single **Subjective_Group** with the highest total spend and its total | Group by **Subjective_Group**, sum **Net_Amount**, take the category with the largest sum (e.g. Supplies And Services, £687,819,858.51) |
-| **Base Saving**                        | Baseline total savings from the savings model (see section 5)              | Sum of the “Base %” savings across all levers in the Saving model table                                                                 |
-| **Top 20 vendors' share of spend (%)** | Concentration of spend in the largest suppliers                            | Sum **Net_Amount** per **Creditor_Name**, take top 20, sum their spend, divide by total spend × 100 (e.g. 30.07%)                       |
-| **Average transaction value**          | Mean payment size                                                          | Total **Net_Amount** ÷ number of transactions (e.g. £4,347.45)                                                                          |
-| **Total transaction count**            | Number of payment records                                                  | Count of rows in the filtered data (e.g. 300,671)                                                                                       |
-
-
-These KPIs give a quick view of scale, category mix, vendor concentration, and transaction volume.
+The design follows a **KPI → trends → breakdowns → levers** flow: summary metrics first, then time and category analysis, then vendor concentration, and finally prescriptive saving opportunities.
 
 ---
 
-## 2. Trend Anomalies chart
+## 2. Data Foundation & Accuracy
 
-- **Type:** Line chart.
-- **X-axis:** Time (e.g. years 2020–2025), often at year-quarter level if a “Year Quarter” control is used.
-- **Y-axis:** **Sum of Net_Amount** (total spend) for each period.
+### 2.1 Source and scope
 
-**Purpose:** Shows how total spend changes over time and helps spot unusual spikes or drops (“anomalies”). The data comes from grouping by the time part of **Payment_Date** and summing **Net_Amount**. A relatively stable line suggests consistent spending; big jumps or falls may need further investigation.
+| Attribute | Detail |
+| --------- | ------ |
+| **Source file** | `data/clean/City of York Council.csv` |
+| **Granularity** | One row per payment transaction |
+| **Primary measure** | **Net_Amount** (£) — used for all spend, averages, and shares |
+| **Time dimension** | **Payment_Date** — used for Year/Month filters and trend charts |
 
----
+All dashboard numbers (KPIs, charts, and saving baselines) are **derived from this single source**. There are no separate manual inputs for the core metrics, which keeps the dashboard consistent and auditable.
 
-## 3. Category vs Year heat table
+### 2.2 Column reference (data dictionary)
 
-- **Type:** Pivot-style table (heat table).
-- **Rows:** **Subjective_Group** (spend categories), e.g. Capital Fees, Capital Financing, Capital Purchases, Employees, Miscellaneous Expenses, Other Capital, Premises, Supplies And Services, Transport Costs.
-- **Columns:** Years (e.g. 2020–2025) plus a **Total** column per category.
-- **Cells:** Total **Net_Amount** for that category in that year (or total across years).
+| Column | Description | Dashboard use |
+| ------ | ----------- | -------------- |
+| **Organisation_Name** | Paying body (e.g. City of York Council) | Context / scope |
+| **Directorate** | High-level area (Economy and Place, Health Housing & Adult So Care, etc.) | Optional slicing |
+| **Department** | Department within directorate | Optional slicing |
+| **Service_Plan** | Service or plan (Transport, Commercial property, Operations, etc.) | Optional slicing |
+| **Creditor_Name** | Supplier or payee | Vendor rankings, Top 20, saving levers |
+| **Payment_Date** | Payment date | Year/Month filters, trend chart, time grouping |
+| **Card_Transaction** | Card payment flag (often blank) | Optional analysis |
+| **Transaction_No** | Unique transaction ID | Counts, deduplication |
+| **Net_Amount** | Payment amount (£) | **All spend calculations** |
+| **Irrecoverable_VAT** | Non-recoverable VAT (often blank) | Optional |
+| **Subjective_Group** | **Spend category** (Supplies And Services, Premises, etc.) | Category breakdown, heat table, top category |
+| **Subjective_Subgroup** | Finer category | Optional drill-down |
+| **Subjective_Detail** | Most detailed category | Optional drill-down |
 
-**Purpose:** Lets you see how much the council spent in each category in each year and how the mix changes over time. For example, “Supplies And Services” might peak in 2021 (£814,060,378.07) while other categories stay flatter. The table is built by grouping the CSV by **Subjective_Group** and the year from **Payment_Date**, then summing **Net_Amount**.
-
----
-
-## 4. Top 20 Vendors chart
-
-- **Type:** Combined bar and line chart.
-- **X-axis:** **Creditor_Name** — the top 20 vendors by total **Net_Amount** in the filtered period.
-- **Left Y-axis (bars):** **Net Amount** — total spend with each vendor (e.g. blue bars).
-- **Right Y-axis (line):** **Percent of total** — each vendor’s share of total spend (e.g. orange line).
-
-**Purpose:** Shows which suppliers receive the most money and how concentrated spend is. It is built by summing **Net_Amount** per **Creditor_Name**, ranking by that sum, taking the top 20, and then computing each vendor’s share of total spend. Names like “City of York”, “North”, “United” (and others) are the **Creditor_Name** values from the CSV.
-
----
-
-## 5. Saving model table
-
-- **Type:** Table of saving “levers” and estimated savings.
-- **Columns:** Lever name, **Baseline Spend**, and three saving scenarios — **Saving Low %**, **Saving Base %**, **Saving High %** — often shown as **Saving Low**, **Saving Base**, **Saving High** in currency.
-
-**Example levers (as in the dashboard):**
-
-
-| Lever                      | What it represents                                                                                                                            |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Consolidate top 5 vendors  | Potential savings from reducing duplication and renegotiating with the five largest **Creditor_Name** payees (Baseline Spend e.g. £1,207,072) |
-| Reduce fuel price by 3%    | Savings from a 3% reduction in fuel-related spend (identified from categories/vendors)                                                        |
-| Renegotiate insurance      | Savings from renegotiating insurance contracts                                                                                                |
-| Remove obsolete spend      | Savings from cutting spend identified as obsolete or redundant                                                                                |
-| Reduce discretionary spend | Savings from reducing non-essential or discretionary expenditure                                                                              |
-
-
-**Purpose:** Illustrates potential savings under low, base, and high assumptions. **Baseline Spend** for each lever is derived from the underlying data (e.g. by category or vendor); the **Base Saving** KPI is the sum of the “Base %” savings across these levers.
+**Calculation rule:** All dashboard metrics aggregate **Net_Amount** and group by **Payment_Date**, **Creditor_Name**, and/or **Subjective_Group** as specified per section below. Filters (Year, Month) apply to the entire dashboard.
 
 ---
 
-## 6. Category Breakdown chart
+## 3. Key Performance Indicators (KPIs)
 
-- **Type:** Horizontal bar chart.
-- **Y-axis:** **Subjective_Group** (spend categories), e.g. Supplies And Services, Capital Purchases, Miscellaneous Expenses, Premises, Employees, Capital Fees, Transport Costs, Other Capital, Capital Financing.
-- **X-axis:** **Sum of Net Amount** (£) for each category.
+Six KPIs give an **executive summary** of scale, mix, concentration, and savings. They are recalculated for the selected Year and Month.
 
-**Purpose:** Shows the relative size of each spend category at a glance. “Supplies And Services” is typically the largest; “Capital Purchases” and “Miscellaneous Expenses” are also large. Built by grouping the CSV by **Subjective_Group** and summing **Net_Amount** (within the current year/month filter).
+| KPI | Business meaning | Calculation |
+| --- | ----------------- | ----------- |
+| **Total Spend (FY)** | Total expenditure in the selected period | Sum of **Net_Amount** over filtered transactions (e.g. £1,307,153,399.64) |
+| **Top category (by spend)** | Largest spend category and its total | Group by **Subjective_Group**, sum **Net_Amount**; max category and value (e.g. Supplies And Services, £687,819,858.51) |
+| **Base Saving** | Total baseline savings from the saving model | Sum of “Base” scenario savings across all levers in the Saving model table (e.g. £5,840,028.71) |
+| **Top 20 vendors' share of spend (%)** | Supplier concentration | Sum **Net_Amount** per **Creditor_Name**; top 20 vendors’ total ÷ total spend × 100 (e.g. 30.07%) |
+| **Average transaction value** | Mean payment size | Total **Net_Amount** ÷ count of transactions (e.g. £4,347.45) |
+| **Total transaction count** | Volume of payments | Row count in filtered data (e.g. 300,671) |
 
----
-
-## 7. Filters (Year and Month)
-
-- **Year filter:** List of years (e.g. 2020–2025) from **Payment_Date**. Selecting one or more years restricts all dashboard calculations and visuals to transactions in those years.
-- **Month filter:** Months 1–12 from **Payment_Date**. Selecting one or more months further narrows the period (e.g. to a specific quarter or month).
-
-All KPIs, the trend chart, heat table, top 20 vendors, category breakdown, and the baseline figures in the saving model use only the filtered transactions.
+**Insight:** High “Top 20 vendors’ share” suggests negotiation or consolidation opportunities; “Base Saving” links directly to the Saving model table for accountability.
 
 ---
 
-## Summary
+## 4. Dashboard Components & Insights
+<img width="1850" height="515" alt="Screenshot 2026-03-01 040629" src="https://github.com/user-attachments/assets/696395ed-24be-4463-9f50-cd08a6194dd9" />
 
-- **Data:** The dashboard is based on `data/clean/City of York Council.csv`, with **Net_Amount** as the main measure, **Payment_Date** for time and filters, **Creditor_Name** for vendors, and **Subjective_Group** for categories.
-- **KPIs:** Total spend, top category, base saving, top 20 vendors’ share, average transaction value, and transaction count.
-- **Charts/tables:** Trend over time, category-by-year heat table, top 20 vendors (amount and %), category breakdown bars, and a saving model table.
-- **Interactivity:** Year and month filters drive the entire dashboard so you can analyse spending and savings by period.
+### 4.1 Trend Anomalies (line chart)
 
+- **Axis:** Time (e.g. years 2019–2025 or year-quarter) on X; **Sum of Net_Amount** on Y.
+- **Purpose:** See how total spend evolves and **identify anomalies** (spikes or drops) that may need explanation (one-off projects, policy changes, or data issues).
+- **Use:** Select a period with Year/Month filters; investigate any sharp changes with further drill-down by category or vendor.
+
+### 4.2 Category vs Year heat table
+
+- **Layout:** Rows = **Subjective_Group** (e.g. Capital Fees, Employees, Supplies And Services, Transport Costs); columns = years (e.g. 2020–2025) + **Total**.
+- **Cells:** Total **Net_Amount** for that category in that year (with optional heat formatting for high/low).
+- **Purpose:** Compare **category spend across years** and see shifts in mix (e.g. Supplies And Services dominance, or changes in Capital vs revenue spend).
+- **Use:** Spot categories growing or shrinking over time for business review.
+
+### 4.3 Top 20 Vendors (bar + line)
+
+- **X-axis:** **Creditor_Name** (top 20 by total **Net_Amount** in the filter).
+- **Left Y (bars):** **Net Amount** per vendor.
+- **Right Y (line):** **% of total** spend per vendor.
+- **Purpose:** Show **who gets the most spend** and how concentrated it is; supports procurement and contract discussions.
+- **Use:** Align with “Top 20 vendors’ share” KPI and with the “Consolidate top 5 vendors” lever in the Saving model.
+
+### 4.4 Saving model table
+
+- **Columns:** Lever name, **Baseline Spend**, then **Saving Low**, **Saving Base**, **Saving High** (as % and/or £).
+- **Purpose:** Turn analysis into **actionable savings** with low/base/high scenarios for planning and accountability.
+
+**Example levers:**
+
+| Lever | Rationale |
+| ----- | --------- |
+| Consolidate top 5 vendors | Reduce duplication and improve terms with largest **Creditor_Name** payees |
+| Reduce fuel price by 3% | Apply assumed price reduction to fuel-related spend |
+| Renegotiate insurance | Savings from contract renegotiation |
+| Remove duplicate spend | Eliminate overlapping or redundant payments |
+| Reduce discretionary spend | Cut non-essential expenditure |
+
+**Base Saving** KPI = sum of the “Base” column in this table. Baseline spend per lever should be traceable to the same CSV (by category/vendor/service) so the dashboard stays accurate and auditable.
+
+### 4.5 Category Breakdown (horizontal bar chart)
+
+- **Axis:** **Subjective_Group** on Y; **Sum of Net_Amount** on X.
+- **Purpose:** Rank categories by spend for the selected period; reinforces “Top category” KPI and supports prioritisation.
+- **Use:** Quick check of where spend sits (e.g. Supplies And Services as largest) before drilling into heat table or saving levers.
+
+---
+
+## 5. Filters & Interactivity
+
+- **Year:** Restricts all metrics and visuals to transactions in the selected year(s) (e.g. 2020–2025).
+- **Month:** Further restricts to selected month(s) (1–12) for monthly or quarterly analysis.
+
+**Accuracy note:** KPIs, trend chart, heat table, Top 20 vendors, category breakdown, and saving model baselines all use the **same filtered dataset**, so period comparisons and drill-downs stay consistent.
+
+---
+
+## 6. How to Use This Dashboard Professionally
+
+1. **Set period** — Choose Year (and Month if needed) so every number refers to the same timeframe.
+2. **Read KPIs** — Check Total Spend, Top category, Base Saving, and Top 20 share to gauge scale and concentration.
+3. **Check trends** — Use the trend chart to spot anomalies, then narrow by year/month and, if possible, by category or vendor elsewhere.
+4. **Compare categories** — Use the heat table and category breakdown to see where spend grew or shrank.
+5. **Link vendors to savings** — Use Top 20 vendors with the Saving model (e.g. “Consolidate top 5 vendors”) to tie analysis to actions.
+6. **Track savings** — Use the Saving model table and Base Saving KPI for targets and reporting; ensure baseline spend for each lever is defined from the same data for accuracy.
+
+---
+
+## 7. Summary
+
+| Aspect | Detail |
+| ------ | ------ |
+| **Data** | `data/clean/City of York Council.csv`; **Net_Amount** = measure; **Payment_Date** = time; **Creditor_Name** = vendor; **Subjective_Group** = category. |
+| **Structure** | KPIs → Trend → Category vs Year → Top 20 Vendors → Saving model → Category breakdown; filters apply globally. |
+| **Accuracy** | Single source; one measure (Net_Amount); same filters for all components; saving baselines derived from same data. |
+| **Insights** | Spend level and mix, trend anomalies, vendor concentration, category evolution, and quantified saving levers with scenarios. |
+
+This README describes the **structure, definitions, and use** of the City of York Council Analysis dashboard so senior analysts and stakeholders can interpret it correctly and use it for accurate, insight-driven decisions.
